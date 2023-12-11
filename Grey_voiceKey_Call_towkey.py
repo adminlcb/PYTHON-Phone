@@ -13,10 +13,10 @@ from machine import Timer
 # 官网
 # https://python.quectel.com/doc/Getting_started/zh/evb/ec600x-evb.html
 
-# 下面两个全局变量是必须有的，用户可以根据自己的实际项目修改下面两个全局变量的值，
+
 # 在执行用户代码前，会先打印这两个变量的值。
 PROJECT_NAME = "Grey_Test"
-PROJECT_VERSION = "1.0.1"
+PROJECT_VERSION = "1.0.3"
 checknet = checkNet.CheckNetwork(PROJECT_NAME, PROJECT_VERSION)
 
 # | Parameter | parameter | description               | type     |
@@ -45,6 +45,7 @@ key_call = Pin(Pin.GPIO13, Pin.IN, Pin.PULL_PD , 1)
 t0Count = 0
 	
 tts = None
+people = 2
 str1 = "用户: "
 str2 = "来电, 请接听!"
 name = ["卢长宝","王蕾","中国移动"]
@@ -79,18 +80,25 @@ def call_people(who):
 		print("打电话"+ name_phone[who])
 		# 拨打指定电话
 		voiceCall.callStart(name_phone[who])
+		tts.stopAll()
+		tts.play(4, 0, 2, "正在呼叫"+name[who])
 		call_status=1
 	# 接电话 
 	elif call_status==2:
-		print("接电话"+ name_phone[who])
-		call_status==3
+		voiceCall.callAnswer()
+		tts.stopAll()
+		call_status=3
 	# 已接通 挂电话 
 	elif call_status==3:
 		print("挂电话")
+		tts.stopAll()
+		tts.play(4, 0, 2, "已挂断")
 		voiceCall.callEnd()
 	# 拨号中 挂电话 
 	elif call_status==1:
 		print("挂电话")
+		tts.stopAll()
+		tts.play(4, 0, 2, "已挂断")
 		voiceCall.callEnd()
 		call_status=0
 	while key_call.read() == 0:
@@ -128,7 +136,7 @@ def dtmf_cb(args):
 
 # 电话回调函数
 def voice_callback(args):
-	global tts, str1, str2
+	global tts, str1, str2, call_status
 	print(args)
 	if args[0] == 10:
 		print('voicecall incoming call, PhoneNO.: ', args[6])
@@ -187,12 +195,13 @@ if __name__ == "__main__":
 	record.gain(4, 12)
 
 	tts = audio.TTS(0)
+	tts.play(4, 0, 2,"已开机")
 	voiceCall.setCallback(voice_callback)  # 注册监听回调函数
 	voiceCall.dtmfSetCb(dtmf_cb)  # 设置DTMF识别回调
 	voiceCall.dtmfDetEnable(1)  # 使能DTMF音
 	# voiceCall.setFw(3, 1, "xxx-xxxx-xxxx")  # 设置控制呼叫转移
 	# voiceCall.setChannel(0)  # 切换音频通道
-	voiceCall.setVolume(10)  # 设置音量大小, 最大11 
+	voiceCall.setVolume(6)  # 设置音量大小, 最大11 
 	# voiceCall.getVolume()  # 获取音量大小
 	# voiceCall.setAutoRecord(1, 1, 2, "U:/test.amr")  # 自动录音
 	# voiceCall.startRecord(0, 2, "U:/test.amr")  # 开启录音
