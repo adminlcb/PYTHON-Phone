@@ -7,6 +7,7 @@ import audio
 import _thread
 import checkNet
 import voiceCall
+import audio
 from machine import Pin
 from machine import Timer
 
@@ -16,7 +17,7 @@ from machine import Timer
 
 # 在执行用户代码前，会先打印这两个变量的值。
 PROJECT_NAME = "Grey_Test"
-PROJECT_VERSION = "1.0.3"
+PROJECT_VERSION = "1.0.4"
 checknet = checkNet.CheckNetwork(PROJECT_NAME, PROJECT_VERSION)
 
 # | Parameter | parameter | description               | type     |
@@ -44,6 +45,7 @@ key_call = Pin(Pin.GPIO13, Pin.IN, Pin.PULL_PD , 1)
 # key_ok = Pin(Pin.GPIO23, Pin.IN, Pin.PULL_PD , 1)
 t0Count = 0
 	
+aud = None
 tts = None
 people = 2
 str1 = "用户: "
@@ -64,6 +66,17 @@ def timer0_test(t):
 
 t0 = Timer(Timer.Timer0)
 
+
+
+# 播放音频回调函数
+def audio_cb(event):
+    global aud
+    if event == 0:
+        print('audio-play start.')
+    elif event == 7:
+        print('audio-play finish.')
+        if call_status == 2:
+            aud.play(1, 0, 'U:/LLL.mp3')
 
 # # 接听按键回调函数
 # def keyok_people():
@@ -195,6 +208,7 @@ if __name__ == "__main__":
 	record.gain(4, 12)
 
 	tts = audio.TTS(0)
+	# 开机播报
 	tts.play(4, 0, 2,"已开机")
 	voiceCall.setCallback(voice_callback)  # 注册监听回调函数
 	voiceCall.dtmfSetCb(dtmf_cb)  # 设置DTMF识别回调
@@ -206,7 +220,13 @@ if __name__ == "__main__":
 	# voiceCall.setAutoRecord(1, 1, 2, "U:/test.amr")  # 自动录音
 	# voiceCall.startRecord(0, 2, "U:/test.amr")  # 开启录音
 	# oiceCall.stopRecord()  # 结束录音
-	voiceCall.setAutoAnswer(30)  # 设置自动应答时间, 单位: S 
+	voiceCall.setAutoAnswer(60)  # 设置自动应答时间, 单位: S 
+
+	# 设置音频通道
+	aud = audio.Audio(0)
+	# 注册音频回调函数
+	aud.setCallback(audio_cb)
+	# aud.play(1, 0, 'U:/LLL.mp3')
 
 	# voiceCall.callStart("10086")  # Grey
 
